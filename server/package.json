@@ -1,0 +1,24 @@
+{
+  "name": "mirabile",
+  "version": "1.0.0",
+  "description": "mirabile.app is an AI career website that converts your dream career into a complete roadmap, delivering personalized resources to help you achieve it.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Stewie-pixel/mirabile.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Stewie-pixel/mirabile/issues"
+  },
+  "homepage": "https://github.com/Stewie-pixel/mirabile#readme",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1"
+  }
+}
