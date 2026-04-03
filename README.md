@@ -2,12 +2,26 @@
 
 <a id="readme-top"></a>
 
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![Unlicense License][license-shield]][license-url]
-[![LinkedIn][linkedin-shield]][linkedin-url]
+<p align="center">
+  <a href="https://github.com/Stewie-pixel/mirabile">
+    <img src="https://img.shields.io/github/contributors/Stewie-pixel/mirabile.svg?style=for-the-badge" />
+  </a>
+  <a href="https://github.com/Stewie-pixel/mirabile">
+    <img src="https://img.shields.io/github/forks/Stewie-pixel/mirabile.svg?style=for-the-badge" />
+  </a>
+  <a href="https://github.com/Stewie-pixel/mirabile">
+    <img src="https://img.shields.io/github/stars/Stewie-pixel/mirabile.svg?style=for-the-badge" />
+  </a>
+  <a href="https://github.com/Stewie-pixel/mirabile">
+    <img src="https://img.shields.io/github/issues/Stewie-pixel/mirabile.svg?style=for-the-badge" />
+  </a>
+  <a href="https://github.com/Stewie-pixel/mirabile/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/Stewie-pixel/mirabile.svg?style=for-the-badge" />
+  </a>
+  <a href="https://linkedin.com/in/chi-vi-han-384612311">
+    <img src="https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin" />
+  </a>
+</p>
 
 ---
 
