@@ -45,5 +45,11 @@ $RECYCLE.BIN/
 
 # End of https://www.toptal.com/developers/gitignore/api/windows,visualstudiocode
 
-# Custom rules (everything added below won't be overriden by 'Generate .gitignore File' if you use 'Update' option)
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Node modules
+node_modules/
 
