@@ -2,12 +2,12 @@
 
 <a id="readme-top"></a>
 
-[![Contributors][contributors-shield]](https://github.com/Stewie-pixel/mirabile)
-[![Forks][forks-shield]](https://github.com/Stewie-pixel/mirabile)
-[![Stargazers][stars-shield]](https://github.com/Stewie-pixel/mirabile)
-[![Issues][issues-shield]](https://github.com/Stewie-pixel/mirabile)
-[![project_license][license-shield]](https://github.com/Stewie-pixel/mirabile?tab=Apache-2.0-1-ov-file)
-[![LinkedIn][linkedin-shield]](https://linkedin.com/in/chi-vi-han-384612311)
+[![Contributors][contributors-shield]][contributors-url]
+[![Forks][forks-shield]][forks-url]
+[![Stargazers][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
+[![Unlicense License][license-shield]][license-url]
+[![LinkedIn][linkedin-shield]][linkedin-url]
 
 ---
 
@@ -216,15 +216,20 @@ GitHub: https://github.com/Stewie-pixel/mirabile
 
 <!-- MARKDOWN LINKS -->
 
-[contributors-shield]: https://img.shields.io/github/contributors/github_username/mirabile.svg?style=for-the-badge
-[contributors-url]: https://github.com/github_username/mirabile/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/github_username/mirabile.svg?style=for-the-badge
-[forks-url]: https://github.com/github_username/mirabile/network/members
-[stars-shield]: https://img.shields.io/github/stars/github_username/mirabile.svg?style=for-the-badge
-[stars-url]: https://github.com/github_username/mirabile/stargazers
-[issues-shield]: https://img.shields.io/github/issues/github_username/mirabile.svg?style=for-the-badge
-[issues-url]: https://github.com/github_username/mirabile/issues
-[license-shield]: https://img.shields.io/github/license/github_username/mirabile.svg?style=for-the-badge
-[license-url]: https://github.com/github_username/mirabile/blob/main/LICENSE
+[contributors-shield]: https://img.shields.io/github/contributors/Stewie-pixel/mirabile.svg?style=for-the-badge
+[contributors-url]: https://github.com/Stewie-pixel/mirabile/graphs/contributors
+
+[forks-shield]: https://img.shields.io/github/forks/Stewie-pixel/mirabile.svg?style=for-the-badge
+[forks-url]: https://github.com/Stewie-pixel/mirabile/network/members
+
+[stars-shield]: https://img.shields.io/github/stars/Stewie-pixel/mirabile.svg?style=for-the-badge
+[stars-url]: https://github.com/Stewie-pixel/mirabile/stargazers
+
+[issues-shield]: https://img.shields.io/github/issues/Stewie-pixel/mirabile.svg?style=for-the-badge
+[issues-url]: https://github.com/Stewie-pixel/mirabile/issues
+
+[license-shield]: https://img.shields.io/github/license/Stewie-pixel/mirabile.svg?style=for-the-badge
+[license-url]: https://github.com/Stewie-pixel/mirabile/blob/main/LICENSE
+
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin
-[linkedin-url]: https://linkedin.com/in/linkedin_username
+[linkedin-url]: https://linkedin.com/in/chi-vi-han-384612311
