@@ -5,6 +5,10 @@ on:
     types:
       - 'opened'
 
+permissions:
+  contents: 'read'
+  issues: 'write'
+
 jobs:
   label-issue:
     runs-on: 'ubuntu-latest'

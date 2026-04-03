@@ -23,7 +23,7 @@ permissions:
 jobs:
   self-assign-issue:
     if: |-
-      github.repository == 'google-gemini/gemini-cli' &&
+      github.repository == 'Stewie-pixel/mirabile' &&
       github.event_name == 'issue_comment' &&
       (contains(github.event.comment.body, '/assign') || contains(github.event.comment.body, '/unassign'))
     runs-on: 'ubuntu-latest'

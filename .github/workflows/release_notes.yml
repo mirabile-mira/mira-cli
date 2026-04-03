@@ -22,7 +22,7 @@ on:
 
 jobs:
   generate-release-notes:
-    if: "github.repository == 'google-gemini/gemini-cli'"
+    if: "github.repository == 'Stewie-pixel/mirabile'"
     runs-on: 'ubuntu-latest'
     permissions:
       contents: 'write'
