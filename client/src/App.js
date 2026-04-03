@@ -22,4 +22,10 @@ function App() {
   );
 }
 
+const App = () => {
+  return (
+    <h2>Welcome to Mirabile!</h2>
+  )
+}
+
 export default App;
