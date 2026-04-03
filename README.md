@@ -2,12 +2,12 @@
 
 <a id="readme-top"></a>
 
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![project\_license][license-shield]][license-url]
-[![LinkedIn][linkedin-shield]][linkedin-url]
+[![Contributors][contributors-shield]](https://github.com/Stewie-pixel/mirabile)
+[![Forks][forks-shield]](https://github.com/Stewie-pixel/mirabile)
+[![Stargazers][stars-shield]](https://github.com/Stewie-pixel/mirabile)
+[![Issues][issues-shield]](https://github.com/Stewie-pixel/mirabile)
+[![project_license][license-shield]](https://github.com/Stewie-pixel/mirabile?tab=Apache-2.0-1-ov-file)
+[![LinkedIn][linkedin-shield]](https://linkedin.com/in/chi-vi-han-384612311)
 
 ---
 
