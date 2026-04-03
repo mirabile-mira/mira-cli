@@ -1,0 +1,14 @@
+# Root-level files
+* @mirabile/Stewie-pixel @mirabile/Edwardprograming
+
+# Frontend (React client)
+client/ @mirabile/Stewie-pixel
+
+# Backend (Express server)
+server/ @mirabile/Stewie-pixel
+
+# GitHub configuration
+.github/ @mirabile/Edwardprograming
+
+# Documentation
+docs/ @mirabile/Edwardprograming
