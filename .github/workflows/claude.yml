@@ -65,46 +65,10 @@ jobs:
           # Add 'assignments' write permission
           permission-issues: 'write'
 
-      - name: Resolve PR context
-        id: pr
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v7
-        with:
-          github-token: '${{ steps.generate_token.outputs.token }}'
-          script: |
-            // Determine if this event is PR-related
-            let prNumber = null;
-            if (context.eventName === 'issue_comment' && context.payload.issue.pull_request) {
-              prNumber = context.payload.issue.number;
-            } else if (context.eventName === 'pull_request_review_comment') {
-              prNumber = context.payload.pull_request.number;
-            } else if (context.eventName === 'pull_request_review') {
-              prNumber = context.payload.pull_request.number;
-            }
-
-            if (!prNumber) {
-              core.setOutput('is_pr', 'false');
-              return;
-            }
-
-            const resp = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: prNumber,
-            });
-            const pr = resp.data;
-
-            core.setOutput('is_pr', 'true');
-            core.setOutput('number', String(prNumber));
-            core.setOutput('sha', pr.head.sha);
-            core.setOutput('repo', pr.head.repo.full_name);
-            core.setOutput('branch', pr.head.ref);
-
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           token: '${{ steps.generate_token.outputs.token }}'
-          repository: ${{ steps.pr.outputs.is_pr == 'true' && steps.pr.outputs.repo || github.repository }}
-          ref: ${{ steps.pr.outputs.is_pr == 'true' && steps.pr.outputs.sha || '' }}
           fetch-depth: 1
 
       - name: Run Claude Code
@@ -119,5 +83,3 @@ jobs:
           # This is an optional setting that allows Claude to read CI results on PRs
           additional_permissions: |
             actions: read
-            on branch: dev
-            types: [pull_request, pull_request_review, pull_request_review_comment]
