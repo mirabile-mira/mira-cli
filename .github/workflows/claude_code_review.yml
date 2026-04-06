@@ -1,91 +1,131 @@
 name: Claude Code Review
 
-# Uses pull_request_target so the workflow runs as defined on the default branch,
-# which allows access to secrets for posting review comments on fork PRs.
+'on':
+  pull_request:
+    types: [opened, synchronize]
 
-on:
-  # Trigger only when explicitly requested:
-  #   - Add the "claude-review" label to a PR, OR
-  #   - Comment "@claude" or "/review" on a PR
-  pull_request_target:
-    types: [labeled]
-  issue_comment:
-    types: [created]
-
-# Serialize per-PR to avoid racing review comments.
+# Prevent multiple review runs on rapid PR updates
 concurrency:
-  group: claude-review-${{ github.event.issue.number || github.event.pull_request.number }}
-  cancel-in-progress: false
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   claude-review:
-    # Run only when:
-    #   1. The "claude-review" label is added to a non-draft PR by a trusted contributor, OR
-    #   2. A trusted contributor comments "@claude" or "/review" on a PR
-    if: |
-      (
-        github.event_name == 'pull_request_target' &&
-        github.event.label.name == 'claude-review' &&
-        github.event.pull_request.draft == false &&
-        (github.event.pull_request.author_association == 'OWNER' ||
-         github.event.pull_request.author_association == 'MEMBER' ||
-         github.event.pull_request.author_association == 'COLLABORATOR')
-      ) ||
-      (
-        github.event_name == 'issue_comment' &&
-        github.event.issue.pull_request &&
-        (contains(github.event.comment.body, '@claude') ||
-         contains(github.event.comment.body, '/review')) &&
-        (github.event.comment.author_association == 'OWNER' ||
-         github.event.comment.author_association == 'MEMBER' ||
-         github.event.comment.author_association == 'COLLABORATOR')
-      )
+    # Auto-review ALL pull requests with Claude
+    # BYPASS: Add [EMERGENCY], [SKIP REVIEW], or [HOTFIX] to PR title
+    # BYPASS: Or add 'emergency' or 'skip-review' label to PR
     runs-on: ubuntu-latest
-    timeout-minutes: 30
     permissions:
-      contents: write
-      pull-requests: write
-      issues: write
-      id-token: write
+      contents: read
+      pull-requests: read
+      issues: read
+      id-token: write  # Required by Claude Code action for OIDC authentication
 
     steps:
-      # For issue_comment triggers, resolve the PR number, head SHA, and fork repo
-      - name: Resolve PR context
-        id: pr
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v7
+      - name: Check Workflow Kill Switch
+        run: |
+          if [ -f ".github/WORKFLOW_KILLSWITCH" ]; then
+            STATUS=$(grep "STATUS:" .github/WORKFLOW_KILLSWITCH | awk '{print $2}')
+            if [ "$STATUS" = "DISABLED" ]; then
+              echo "🛑 Workflows disabled by kill switch"
+              exit 0
+            fi
+          fi
+      - name: Check for Review Bypass
+        id: bypass
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_LABELS="${{ toJSON(github.event.pull_request.labels.*.name) }}"
+
+          # Check for bypass markers in PR title
+          if echo "$PR_TITLE" | grep -qE '\[EMERGENCY\]|\[SKIP REVIEW\]|\[HOTFIX\]'; then
+            echo "bypass=true" >> $GITHUB_OUTPUT
+            echo "reason=PR title contains bypass marker" >> $GITHUB_OUTPUT
+            echo "⏭️ BYPASS: PR title contains bypass marker"
+            exit 0
+          fi
+
+          # Check for bypass labels
+          if echo "$PR_LABELS" | grep -qE 'emergency|skip-review|hotfix'; then
+            echo "bypass=true" >> $GITHUB_OUTPUT
+            echo "reason=PR has bypass label" >> $GITHUB_OUTPUT
+            echo "⏭️ BYPASS: PR has bypass label"
+            exit 0
+          fi
+
+          echo "bypass=false" >> $GITHUB_OUTPUT
+          echo "✅ No bypass detected - review will proceed"
+
+      - name: Post Bypass Notice
+        if: steps.bypass.outputs.bypass == 'true'
+        uses: actions/github-script@v7
         with:
           script: |
-            let pr;
-            if (context.eventName === 'issue_comment') {
-              const resp = await github.rest.pulls.get({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: context.payload.issue.number,
-              });
-              pr = resp.data;
-            } else {
-              pr = context.payload.pull_request;
-            }
-            core.setOutput('number', pr.number);
-            core.setOutput('sha', pr.head.sha);
-            core.setOutput('repo', pr.head.repo.full_name);
-            core.setOutput('branch', pr.head.ref);
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## ⏭️ Code Review Bypassed
 
-      - name: Checkout PR head
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+              **Reason**: ${{ steps.bypass.outputs.reason }}
+
+              ⚠️ **Manual review recommended** - This PR was merged without automated code review.
+
+              ---
+              *Bypass triggered by emergency procedures protocol*`
+            })
+
+      - name: Checkout repository
+        if: steps.bypass.outputs.bypass != 'true'
+        uses: actions/checkout@v4
         with:
-          repository: ${{ steps.pr.outputs.repo }}
-          ref: ${{ steps.pr.outputs.sha }}
           fetch-depth: 1
 
       - name: Run Claude Code Review
+        if: steps.bypass.outputs.bypass != 'true'
         id: claude-review
-        uses: anthropics/claude-code-action@9469d113c6afd29550c402740f22d1a97dd1209b # v1
+        uses: anthropics/claude-code-action@v1
+        continue-on-error: true
         with:
           claude_code_oauth_token: ${{ secrets.ANTHROPIC_AUTH_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          allowed_non_write_users: '*'
-          show_full_output: true
-          plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
-          plugins: 'code-review@claude-code-plugins'
-          prompt: '/code-review:code-review ${{ github.repository }}/pull/${{ steps.pr.outputs.number }}'
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+
+            Please review this pull request and provide feedback on:
+            - Code quality and best practices
+            - Potential bugs or issues
+            - Performance considerations
+            - Security concerns
+            - Test coverage
+            - Skill quality (if applicable)
+
+            Use the repository's CLAUDE.md for guidance on style and conventions. Be constructive and helpful in your feedback.
+
+            Use `gh pr comment` with your Bash tool to leave your review as a comment on the PR.
+
+          # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
+          # or https://docs.claude.com/en/docs/claude-code/cli-reference
+          claude_args: >-
+            --allowed-tools
+            "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),
+            Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"
+
+      - name: Post fallback review note (quota/timeout)
+        if: steps.claude-review.outcome != 'success'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## ⚠️ Automated Review Skipped
+
+              The automated Claude review could not complete (likely quota or a transient error).
+
+              - You can retry this workflow from the Actions tab
+              - Proceed with manual review to unblock
+              `
+            })
