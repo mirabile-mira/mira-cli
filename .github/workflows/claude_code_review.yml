@@ -81,39 +81,59 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Run Claude Code Review
-        if: steps.bypass.outputs.bypass != 'true'
-        id: claude-review
-        uses: anthropics/claude-code-action@v1
-        continue-on-error: true
-        with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          prompt: |
-            REPO: ${{ github.repository }}
-            PR NUMBER: ${{ github.event.pull_request.number }}
+      - name: Get PR diff
+        id: diff
+        run: |
+          curl -s \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} \
+            | jq -r '.body' > pr_body.txt
 
-            Please review this pull request and provide feedback on:
-            - Code quality and best practices
-            - Potential bugs or issues
-            - Performance considerations
-            - Security concerns
-            - Test coverage
-            - Skill quality (if applicable)
+          curl -s \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files \
+            | jq -r '.[].patch' > diff.txt
 
-            Use the repository's CLAUDE.md for guidance on style and conventions. Be constructive and helpful in your feedback.
+      - name: Send to OpenRouter
+        id: review
+        env:
+          OPENROUTER_KEY: ${{ secrets.OPENROUTER_KEY }}
+        run: |
+          PROMPT=$(cat diff.txt | head -c 8000)
 
-            Use `gh pr comment` with your Bash tool to leave your review as a comment on the PR.
+          RESPONSE=$(curl -s https://openrouter.ai/api/v1/chat/completions \
+            -H "Authorization: Bearer $OPENROUTER_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"model\": \"qwen/qwen3.6-plus:free\",
+              \"messages\": [
+                {
+                  \"role\": \"system\",
+                  \"content\": \"You are a senior code reviewer.\"
+                },
+                {
+                  \"role\": \"user\",
+                  \"content\": \"Review this PR diff and provide feedback:\\n$PROMPT\"
+                }
+              ]
+            }")
 
-          # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
-          # or https://docs.claude.com/en/docs/claude-code/cli-reference
-          claude_args: >-
-            --allowed-tools
-            "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),
-            Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"
+          echo "$RESPONSE" > response.json
+          TEXT=$(jq -r '.choices[0].message.content' response.json)
+
+          echo "review=$TEXT" >> $GITHUB_OUTPUT
+
+      - name: Comment on PR
+        run: |
+          curl -s -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"body\": \"${{ steps.review.outputs.review }}\"}" \
+            https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments
+
 
       - name: Post fallback review note (quota/timeout)
-        if: steps.claude-review.outcome != 'success'
+        if: steps.review.outcome != 'success'
         uses: actions/github-script@v7
         with:
           script: |
