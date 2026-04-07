@@ -97,12 +97,12 @@ jobs:
       - name: Send to OpenRouter
         id: review
         env:
-          OPENROUTER_KEY: ${{ secrets.OPENROUTER_KEY }}
+          OPENROUTER_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
           PROMPT=$(cat diff.txt | head -c 8000)
 
           RESPONSE=$(curl -s https://openrouter.ai/api/v1/chat/completions \
-            -H "Authorization: Bearer $OPENROUTER_KEY" \
+            -H "Authorization: Bearer $OPENROUTER_API_KEY" \
             -H "Content-Type: application/json" \
             -d "{
               \"model\": \"qwen/qwen3.6-plus:free\",
