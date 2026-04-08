@@ -1,8 +1,12 @@
 name: Claude Code Review
 
-'on':
+on:
   pull_request:
     types: [opened, synchronize]
+
+env:
+  GH_TOKEN: ${{ github.token }}
+  OPENROUTER_KEY: ${{ secrets.OPENROUTER_API_KEY }}
 
 # Prevent multiple review runs on rapid PR updates
 concurrency:
@@ -11,10 +15,8 @@ concurrency:
 
 jobs:
   claude-review:
-    # Auto-review ALL pull requests with Claude
-    # BYPASS: Add [EMERGENCY], [SKIP REVIEW], or [HOTFIX] to PR title
-    # BYPASS: Or add 'emergency' or 'skip-review' label to PR
     runs-on: ubuntu-latest
+
     permissions:
       contents: write
       pull-requests: write
@@ -31,13 +33,13 @@ jobs:
               exit 0
             fi
           fi
+
       - name: Check for Review Bypass
         id: bypass
         run: |
           PR_TITLE="${{ github.event.pull_request.title }}"
           PR_LABELS="${{ toJSON(github.event.pull_request.labels.*.name) }}"
 
-          # Check for bypass markers in PR title
           if echo "$PR_TITLE" | grep -qE '\[EMERGENCY\]|\[SKIP REVIEW\]|\[HOTFIX\]'; then
             echo "bypass=true" >> $GITHUB_OUTPUT
             echo "reason=PR title contains bypass marker" >> $GITHUB_OUTPUT
@@ -45,7 +47,6 @@ jobs:
             exit 0
           fi
 
-          # Check for bypass labels
           if echo "$PR_LABELS" | grep -qE 'emergency|skip-review|hotfix'; then
             echo "bypass=true" >> $GITHUB_OUTPUT
             echo "reason=PR has bypass label" >> $GITHUB_OUTPUT
@@ -71,15 +72,12 @@ jobs:
 
               **Manual review recommended** - This PR was merged without automated code review.
 
-              ---
-              *Bypass triggered by emergency procedures protocol*`
+              ---`
             })
 
       - name: Checkout repository
         if: steps.bypass.outputs.bypass != 'true'
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
 
       - name: Run Claude Code Review
         if: steps.bypass.outputs.bypass != 'true'
@@ -125,9 +123,13 @@ jobs:
               repo: context.repo.repo,
               body: `## Automated Review Skipped
 
-              The automated Claude review could not complete (likely quota or a transient error).
+              The automated review could not complete.
 
-              - You can retry this workflow from the Actions tab
-              - Proceed with manual review to unblock
-              `
+              Please review manually.`
             })
+
+      - name: Debug OpenRouter response
+        run: |
+          gh pr diff ${{ github.event.pull_request.number }} --patch
+          echo "PULL REQUEST DIFF: $PROMPT"
+          echo "RAW AI RESPONSE: $RESPONSE"
