@@ -87,7 +87,7 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.OPENROUTER_API_KEY }}
         env:
-          ANTHROPIC_BASE_URL: https://openrouter.ai/api
+          ANTHROPIC_BASE_URL: https://openrouter.ai/api/v1
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: |
             REPO: ${{ github.repository }}
