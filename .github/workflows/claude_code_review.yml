@@ -73,26 +73,18 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Get PR diff
-        id: diff
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          PR_RESPONSE=$(curl -sS \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }})
-
-          echo "$PR_RESPONSE" | jq -r '.body // ""' > pr_body.txt
-
-          FILES_RESPONSE=$(curl -sS \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files)
-
-          echo "$FILES_RESPONSE" | jq -r '.[]?.patch // empty' > diff.txt
+          # Downloads the diff for the current pull request
+          gh pr diff ${{ github.event.pull_request.number }} > pr_diff.patch
 
       - name: Send to OpenRouter
         id: review
         env:
           OPENROUTER_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
-          PROMPT=$(cat diff.txt | head -c 8000)
+          PROMPT=$(cat pr_diff.patch | head -c 8000)
           [ -z "$PROMPT" ] && PROMPT="No changes detected in this PR."
 
           RESPONSE=$(curl -sS \
