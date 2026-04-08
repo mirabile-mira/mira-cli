@@ -84,7 +84,7 @@ jobs:
       - name: Send to OpenRouter
         id: review
         run: |
-          PROMPT=$(cat pr_diff.patch | head -c 8000)
+          PROMPT=$(cat pr_diff.patch | head -c 8000 | jq -Rs .)
           [ -z "$PROMPT" ] && PROMPT="No changes detected in this PR."
 
           RESPONSE=$(curl -sS \
@@ -99,7 +99,13 @@ jobs:
               ]
             }")
 
-          TEXT=$(echo "$RESPONSE" | jq -r '.choices[0].message.content // "Review failed."')
+          TEXT=$(echo "$RESPONSE" | jq -r '
+            if .choices != null and .choices[0].message.content != null then
+              .choices[0].message.content
+            else
+              "Review failed: AI did not return a valid response"
+            end
+          ')          
 
           echo "review<<EOF" >> $GITHUB_OUTPUT
           echo "$TEXT" >> $GITHUB_OUTPUT
@@ -128,3 +134,8 @@ jobs:
 
               Please review manually.`
             })
+
+      - name: Debug OpenRouter response
+        run: |
+          echo "RAW AI RESPONSE: "
+          echo "$RESPONSE"
