@@ -137,5 +137,5 @@ jobs:
 
       - name: Debug OpenRouter response
         run: |
-          echo "RAW AI RESPONSE: "
-          echo "$RESPONSE"
+          echo "PULL REQUEST DIFF: $PROMPT"
+          echo "RAW AI RESPONSE: $RESPONSE"
