@@ -1,6 +1,6 @@
 name: Claude Code Review
 
-'on':
+on:
   pull_request:
     types: [opened, synchronize]
 
@@ -11,15 +11,13 @@ concurrency:
 
 jobs:
   claude-review:
-    # Auto-review ALL pull requests with Claude
-    # BYPASS: Add [EMERGENCY], [SKIP REVIEW], or [HOTFIX] to PR title
-    # BYPASS: Or add 'emergency' or 'skip-review' label to PR
     runs-on: ubuntu-latest
+
     permissions:
       contents: read
       pull-requests: read
       issues: read
-      id-token: write  # Required by Claude Code action for OIDC authentication
+      id-token: write
 
     steps:
       - name: Check Workflow Kill Switch
@@ -27,34 +25,30 @@ jobs:
           if [ -f ".github/WORKFLOW_KILLSWITCH" ]; then
             STATUS=$(grep "STATUS:" .github/WORKFLOW_KILLSWITCH | awk '{print $2}')
             if [ "$STATUS" = "DISABLED" ]; then
-              echo "🛑 Workflows disabled by kill switch"
+              echo "Workflows disabled by kill switch"
               exit 0
             fi
           fi
+
       - name: Check for Review Bypass
         id: bypass
         run: |
           PR_TITLE="${{ github.event.pull_request.title }}"
           PR_LABELS="${{ toJSON(github.event.pull_request.labels.*.name) }}"
 
-          # Check for bypass markers in PR title
           if echo "$PR_TITLE" | grep -qE '\[EMERGENCY\]|\[SKIP REVIEW\]|\[HOTFIX\]'; then
             echo "bypass=true" >> $GITHUB_OUTPUT
             echo "reason=PR title contains bypass marker" >> $GITHUB_OUTPUT
-            echo "⏭️ BYPASS: PR title contains bypass marker"
             exit 0
           fi
 
-          # Check for bypass labels
           if echo "$PR_LABELS" | grep -qE 'emergency|skip-review|hotfix'; then
             echo "bypass=true" >> $GITHUB_OUTPUT
             echo "reason=PR has bypass label" >> $GITHUB_OUTPUT
-            echo "⏭️ BYPASS: PR has bypass label"
             exit 0
           fi
 
           echo "bypass=false" >> $GITHUB_OUTPUT
-          echo "✅ No bypass detected - review will proceed"
 
       - name: Post Bypass Notice
         if: steps.bypass.outputs.bypass == 'true'
@@ -65,34 +59,33 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `## ⏭️ Code Review Bypassed
+              body: `## Code Review Bypassed
 
               **Reason**: ${{ steps.bypass.outputs.reason }}
 
-              ⚠️ **Manual review recommended** - This PR was merged without automated code review.
+              Manual review recommended.
 
-              ---
-              *Bypass triggered by emergency procedures protocol*`
+              ---`
             })
 
       - name: Checkout repository
         if: steps.bypass.outputs.bypass != 'true'
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
 
       - name: Get PR diff
         id: diff
         run: |
-          curl -s \
+          PR_RESPONSE=$(curl -sS \
             -H "Authorization: token $GITHUB_TOKEN" \
-            https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }} \
-            | jq -r '.body' > pr_body.txt
+            https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }})
 
-          curl -s \
+          echo "$PR_RESPONSE" | jq -r '.body // ""' > pr_body.txt
+
+          FILES_RESPONSE=$(curl -sS \
             -H "Authorization: token $GITHUB_TOKEN" \
-            https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files \
-            | jq -r '.[].patch' > diff.txt
+            https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files)
+
+          echo "$FILES_RESPONSE" | jq -r '.[]?.patch // empty' > diff.txt
 
       - name: Send to OpenRouter
         id: review
@@ -100,28 +93,25 @@ jobs:
           OPENROUTER_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
           PROMPT=$(cat diff.txt | head -c 8000)
+          [ -z "$PROMPT" ] && PROMPT="No changes detected in this PR."
 
-          RESPONSE=$(curl -s https://openrouter.ai/api/v1/chat/completions \
-            -H "Authorization: Bearer $OPENROUTER_API_KEY" \
+          RESPONSE=$(curl -sS \
+            https://openrouter.ai/api/v1/chat/completions \
+            -H "Authorization: Bearer $OPENROUTER_KEY" \
             -H "Content-Type: application/json" \
             -d "{
               \"model\": \"qwen/qwen3.6-plus:free\",
               \"messages\": [
-                {
-                  \"role\": \"system\",
-                  \"content\": \"You are a senior code reviewer.\"
-                },
-                {
-                  \"role\": \"user\",
-                  \"content\": \"Review this PR diff and provide feedback:\\n$PROMPT\"
-                }
+                {\"role\": \"system\", \"content\": \"You are a senior code reviewer.\"},
+                {\"role\": \"user\", \"content\": \"Review this PR diff:\\n$PROMPT\"}
               ]
             }")
 
-          echo "$RESPONSE" > response.json
-          TEXT=$(jq -r '.choices[0].message.content' response.json)
+          TEXT=$(echo "$RESPONSE" | jq -r '.choices[0].message.content // "Review failed."')
 
-          echo "review=$TEXT" >> $GITHUB_OUTPUT
+          echo "review<<EOF" >> $GITHUB_OUTPUT
+          echo "$TEXT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Comment on PR
         run: |
@@ -131,8 +121,7 @@ jobs:
             -d "{\"body\": \"${{ steps.review.outputs.review }}\"}" \
             https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments
 
-
-      - name: Post fallback review note (quota/timeout)
+      - name: Post fallback review note
         if: steps.review.outcome != 'success'
         uses: actions/github-script@v7
         with:
@@ -141,11 +130,9 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `## ⚠️ Automated Review Skipped
+              body: `## Automated Review Skipped
 
-              The automated Claude review could not complete (likely quota or a transient error).
+              The automated review could not complete.
 
-              - You can retry this workflow from the Actions tab
-              - Proceed with manual review to unblock
-              `
+              Please review manually.`
             })
