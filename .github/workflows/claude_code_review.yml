@@ -27,7 +27,7 @@ jobs:
           if [ -f ".github/WORKFLOW_KILLSWITCH" ]; then
             STATUS=$(grep "STATUS:" .github/WORKFLOW_KILLSWITCH | awk '{print $2}')
             if [ "$STATUS" = "DISABLED" ]; then
-              echo "🛑 Workflows disabled by kill switch"
+              echo " Workflows disabled by kill switch"
               exit 0
             fi
           fi
@@ -41,7 +41,7 @@ jobs:
           if echo "$PR_TITLE" | grep -qE '\[EMERGENCY\]|\[SKIP REVIEW\]|\[HOTFIX\]'; then
             echo "bypass=true" >> $GITHUB_OUTPUT
             echo "reason=PR title contains bypass marker" >> $GITHUB_OUTPUT
-            echo "⏭️ BYPASS: PR title contains bypass marker"
+            echo " BYPASS: PR title contains bypass marker"
             exit 0
           fi
 
@@ -49,12 +49,12 @@ jobs:
           if echo "$PR_LABELS" | grep -qE 'emergency|skip-review|hotfix'; then
             echo "bypass=true" >> $GITHUB_OUTPUT
             echo "reason=PR has bypass label" >> $GITHUB_OUTPUT
-            echo "⏭️ BYPASS: PR has bypass label"
+            echo " BYPASS: PR has bypass label"
             exit 0
           fi
 
           echo "bypass=false" >> $GITHUB_OUTPUT
-          echo "✅ No bypass detected - review will proceed"
+          echo " No bypass detected - review will proceed"
 
       - name: Post Bypass Notice
         if: steps.bypass.outputs.bypass == 'true'
@@ -65,11 +65,11 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `## ⏭️ Code Review Bypassed
+              body: `## Code Review Bypassed
 
               **Reason**: ${{ steps.bypass.outputs.reason }}
 
-              ⚠️ **Manual review recommended** - This PR was merged without automated code review.
+              **Manual review recommended** - This PR was merged without automated code review.
 
               ---
               *Bypass triggered by emergency procedures protocol*`
@@ -87,7 +87,9 @@ jobs:
         uses: anthropics/claude-code-action@v1
         continue-on-error: true
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          anthropic_api_key: ${{ secrets.OPENROUTER_API_KEY }}
+        env:
+          ANTHROPIC_BASE_URL: https://openrouter.ai/api
           github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: |
             REPO: ${{ github.repository }}
@@ -121,7 +123,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `## ⚠️ Automated Review Skipped
+              body: `## Automated Review Skipped
 
               The automated Claude review could not complete (likely quota or a transient error).
 

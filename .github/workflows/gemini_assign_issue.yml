@@ -4,6 +4,7 @@ on:
   issue_comment:
     types:
       - 'created'
+      - 'edited'
 
 concurrency:
   group: '${{ github.workflow }}-${{ github.event.issue.number }}'
@@ -25,7 +26,7 @@ jobs:
     if: |-
       github.repository == 'Stewie-pixel/mirabile' &&
       github.event_name == 'issue_comment' &&
-      (contains(github.event.comment.body, '/assign') || contains(github.event.comment.body, '/unassign'))
+      (contains(github.event.comment.body, 'assign') || contains(github.event.comment.body, 'unassign'))
     runs-on: 'ubuntu-latest'
     steps:
       - name: 'Generate GitHub App Token'
@@ -38,7 +39,7 @@ jobs:
           permission-issues: 'write'
 
       - name: 'Assign issue to user'
-        if: "contains(github.event.comment.body, '/assign')"
+        if: "contains(github.event.comment.body, 'assign')"
         uses: 'actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd'
         with:
           github-token: '${{ steps.generate_token.outputs.token }}'
@@ -111,7 +112,7 @@ jobs:
             });
 
       - name: 'Unassign issue from user'
-        if: "contains(github.event.comment.body, '/unassign')"
+        if: "contains(github.event.comment.body, 'unassign')"
         uses: 'actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd'
         with:
           github-token: '${{ steps.generate_token.outputs.token }}'
