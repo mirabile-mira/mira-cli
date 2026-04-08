@@ -4,6 +4,10 @@ on:
   pull_request:
     types: [opened, synchronize]
 
+env:
+  GH_TOKEN: ${{ github.token }}
+  OPENROUTER_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+
 # Prevent multiple review runs on rapid PR updates
 concurrency:
   group: claude-review-${{ github.event.pull_request.number }}
@@ -73,16 +77,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Get PR diff
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           # Downloads the diff for the current pull request
           gh pr diff ${{ github.event.pull_request.number }} > pr_diff.patch
 
       - name: Send to OpenRouter
         id: review
-        env:
-          OPENROUTER_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
           PROMPT=$(cat pr_diff.patch | head -c 8000)
           [ -z "$PROMPT" ] && PROMPT="No changes detected in this PR."
@@ -108,7 +108,7 @@ jobs:
       - name: Comment on PR
         run: |
           curl -s -X POST \
-            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Authorization: token $GH_TOKEN" \
             -H "Content-Type: application/json" \
             -d "{\"body\": \"${{ steps.review.outputs.review }}\"}" \
             https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments
