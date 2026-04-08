@@ -32,76 +32,21 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: run claude via openrouter
-
+      - name: Run Claude Code
+        id: claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.OPENROUTER_API_KEY }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          OPENROUTER_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
-          REPO: ${{ github.repository }}
-          COMMENT_BODY: "${{ github.event.comment.body }}"
+          ANTHROPIC_BASE_URL: https://openrouter.ai/api
+          prompt: |
+            REPO: ${{ github.repository }}
+            ISSUE NUMBER: ${{ github.event.issue.number }}
+            
+            Review and analyze through the issue description to figure out the problem and what need to be changed.
+            Use the repository's CLAUDE.md for guidance on style and conventions. Be constructive and helpful in your feedback.
 
-        run: |
-          echo "Sending prompt to OpenRouter..."
-
-          # Get Claude response from OpenRouter with error handling
-          RESPONSE=$(curl -sS -w "\nHTTPSTATUS:%{http_code}" \
-            https://openrouter.ai/api/v1/chat/completions \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Bearer $OPENROUTER_API_KEY" \
-            -d "{
-              \"model\": \"nvidia/nemotron-3-super-120b-a12b:free\",
-              \"messages\": [
-                {
-                  \"role\": \"user\",
-                  \"content\": \"User said: $COMMENT_BODY\n\nRespond helpfully.\"
-                }
-              ]
-            }") || {
-            echo "Failed to connect to OpenRouter API"
-            exit 1
-          }
-
-          HTTP_STATUS=$(echo "$RESPONSE" | tail -n1 | sed -e 's/.*HTTPSTATUS://')
-          RESPONSE_BODY=$(echo "$RESPONSE" | sed -e 's/HTTPSTATUS:.*//')
-
-          if [ "$HTTP_STATUS" != "200" ]; then
-            echo "OpenRouter API returned status $HTTP_STATUS"
-            echo "Response: $RESPONSE_BODY"
-            # Create a helpful fallback response
-            TEXT="I apologize, but I'm currently unable to process your request due to an API error with the AI service (HTTP $HTTP_STATUS). Please try again later or contact a human maintainer for assistance."
-          else
-            # Extract text response from OpenRouter output with validation
-            if echo "$RESPONSE_BODY" | jq -e '.choices[0].message.content' > /dev/null 2>&1; then
-              TEXT=$(echo "$RESPONSE_BODY" | jq -r '.choices[0].message.content')
-            else
-              echo "Invalid JSON response from OpenRouter"
-              echo "Response: $RESPONSE_BODY"
-              TEXT="I received an invalid response from the AI service. Please try again later or contact a human maintainer for assistance."
-            fi
-          fi
-
-          echo "Claude response:"
-          echo "$TEXT"
-
-          # Post response as a GitHub comment with error handling
-          echo "Posting response to GitHub..."
-          POST_RESPONSE=$(curl -sS -w "\nHTTPSTATUS:%{http_code}" \
-            -X POST \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            -H "Content-Type: application/json" \
-            -d "{\"body\":\"$TEXT\"}" \
-            https://api.github.com/repos/$REPO/issues/$ISSUE_NUMBER/comments) || {
-            echo "Failed to post comment to GitHub"
-            exit 1
-          }
-
-          POST_HTTP_STATUS=$(echo "$POST_RESPONSE" | tail -n1 | sed -e 's/.*HTTPSTATUS://')
-          if [ "$POST_HTTP_STATUS" != "201" ]; then
-            echo "GitHub API returned status $POST_HTTP_STATUS when posting comment"
-            echo "Response: $POST_RESPONSE"
-            # Don't exit here as we still want to show the AI response worked
-          else
-            echo "Response posted successfully to GitHub"
-          fi
-          
+          # This is an optional setting that allows Claude to read CI results on PRs
+          additional_permissions: |
+            actions: read
+          # prompt: 'Update the pull request description to include a summary of changes.'
