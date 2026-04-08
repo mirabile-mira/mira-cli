@@ -92,7 +92,7 @@ jobs:
             -H "Authorization: Bearer $OPENROUTER_KEY" \
             -H "Content-Type: application/json" \
             -d "{
-              \"model\": \"qwen/qwen3.6-plus:free\",
+              \"model\": \"nvidia/nemotron-3-super-120b-a12b:free\",
               \"messages\": [
                 {\"role\": \"system\", \"content\": \"You are a senior code reviewer.\"},
                 {\"role\": \"user\", \"content\": \"Review this PR diff:\\n$PROMPT\"}
