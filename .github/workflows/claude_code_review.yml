@@ -79,7 +79,8 @@ jobs:
       - name: Get PR diff
         run: |
           # Downloads the diff for the current pull request
-          gh pr diff ${{ github.event.pull_request.number }} > pr_diff.patch
+          gh pr checkout ${{ github.event.pull_request.number }}
+          gh pr diff ${{ github.event.pull_request.number }} --patch > pr_diff.patch
 
       - name: Send to OpenRouter
         id: review
@@ -137,5 +138,6 @@ jobs:
 
       - name: Debug OpenRouter response
         run: |
+          gh pr diff ${{ github.event.pull_request.number }} --patch
           echo "PULL REQUEST DIFF: $PROMPT"
           echo "RAW AI RESPONSE: $RESPONSE"
