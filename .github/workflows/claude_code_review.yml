@@ -94,7 +94,7 @@ jobs:
               \"model\": \"nvidia/nemotron-3-super-120b-a12b:free\",
               \"messages\": [
                 {\"role\": \"system\", \"content\": \"You are a senior code reviewer.\"},
-                {\"role\": \"user\", \"content\": { $PROMPT } }
+                {\"role\": \"user\", \"content\": $PROMPT }
               ]
             }")
 
