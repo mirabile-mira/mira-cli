@@ -80,7 +80,7 @@ jobs:
         run: |
           # Downloads the diff for the current pull request
           gh pr checkout ${{ github.event.pull_request.number }}
-          PR_SUMMARY=$(gh pr diff ${{ github.event.pull_request.number }} | git apply --stat | head -n 50 | jq -Rs .)
+          PR_SUMMARY=$(gh pr diff ${{ github.event.pull_request.number }} --name-only | head -n 20 | jq -Rs .)
           echo "PROMPT=$PR_SUMMARY" >> $GITHUB_ENV
 
       - name: Send to OpenRouter
