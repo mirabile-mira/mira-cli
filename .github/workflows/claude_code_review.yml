@@ -80,14 +80,12 @@ jobs:
         run: |
           # Downloads the diff for the current pull request
           gh pr checkout ${{ github.event.pull_request.number }}
-          gh pr diff ${{ github.event.pull_request.number }} --patch > pr_diff.patch
+          PR_SUMMARY=$(gh pr diff ${{ github.event.pull_request.number }} | git apply --stat | head -n 50 | jq -Rs .)
+          echo "PROMPT=$PR_SUMMARY" >> $GITHUB_ENV
 
       - name: Send to OpenRouter
         id: review
         run: |
-          PROMPT=$(cat pr_diff.patch | head -c 8000 | jq -Rs .)
-          [ -z "$PROMPT" ] && PROMPT="No changes detected in this PR."
-
           RESPONSE=$(curl -sS \
             https://openrouter.ai/api/v1/chat/completions \
             -H "Authorization: Bearer $OPENROUTER_KEY" \
