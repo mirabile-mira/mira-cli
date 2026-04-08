@@ -50,7 +50,7 @@ jobs:
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer $OPENROUTER_API_KEY" \
             -d "{
-              \"model\": \"qwen/qwen3.6-plus:free\",
+              \"model\": \"nvidia/nemotron-3-super-120b-a12b:free\",
               \"messages\": [
                 {
                   \"role\": \"user\",
