@@ -40,7 +40,7 @@ jobs:
         env:
           ANTHROPIC_BASE_URL: https://openrouter.ai/api/v1
           ANTHROPIC_API_KEY: ""
-          ANTHROPIC_MODEL: "google/gemma-4-31b-it:free"
+          ANTHROPIC_MODEL: "nvidia/nemotron-3-super-120b-a12b:free"
           prompt: |
             REPO: ${{ github.repository }}
             ISSUE NUMBER: ${{ github.event.issue.number }}
