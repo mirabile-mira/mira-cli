@@ -81,7 +81,7 @@ jobs:
           # Downloads the diff for the current pull request
           gh pr checkout ${{ github.event.pull_request.number }}
           gh pr diff ${{ github.event.pull_request.number }} | head -c 8000 > pr_diff.txt
-          PROMPT=$(head -c 8000 pr_diff.txt | jq -Rs .)
+          echo "PROMPT=$(cat pr_diff.txt | jq -Rs .)" >> $GITHUB_ENV
 
       - name: Send to OpenRouter
         id: review
