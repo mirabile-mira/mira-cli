@@ -32,11 +32,27 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Extract issue/PR data safely
+        run: |
+          TITLE="${{ github.event.issue.title || github.event.pull_request.title }}"
+          BODY="${{ github.event.issue.body || github.event.pull_request.body }}"
+      
+          echo "TITLE<<EOF" >> $GITHUB_ENV
+          echo "$TITLE" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+      
+          echo "BODY<<EOF" >> $GITHUB_ENV
+          echo "$BODY" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
       - name: Run Claude code review
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           OPENROUTER_MODEL: "openrouter/free"
         run: |
+          NUMBER="${{ github.event.issue.number || github.event.pull_request.number }}"
+          URL="https://github.com/${{ github.repository }}/issues/$NUMBER"
+
           PROMPT="You are a senior software engineer and product reviewer.
           
           Your task is to critically review the following GitHub issue and provide detailed, actionable feedback.
@@ -74,6 +90,8 @@ jobs:
           ---
           
           Issue Details:
+          Issue: #$NUMBER
+          Link: $URL
           Title: $TITLE
           Description:
           $BODY
