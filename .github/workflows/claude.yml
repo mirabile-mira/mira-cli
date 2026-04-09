@@ -32,17 +32,46 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Run AI Script
+      - name: Run Claude code review
         env:
-          # Reference your stored GitHub Secret
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          OPENROUTER_MODEL: "openrouter/free" 
+          OPENROUTER_MODEL: "openrouter/free"
         run: |
-          # Using cURL to call the API
-          curl https://openrouter.ai/api/v1/chat/completions \
+          DIFF=$(git diff origin/main...HEAD)
+      
+          PROMPT="You are a helpful code reviewer.
+          Review the following code changes for GitHub issue/PR #${{ github.event.pull_request.number }}.
+          
+          Provide:
+          - Bugs or risks
+          - Code quality issues
+          - Suggestions for improvement
+          
+          Code changes:
+          $DIFF
+          "
+      
+          RESPONSE=$(curl -s https://openrouter.ai/api/v1/chat/completions \
             -H "Authorization: Bearer $OPENROUTER_API_KEY" \
             -H "Content-Type: application/json" \
-            -d '{
-              "model": "'"$OPENROUTER_MODEL"'",
-              "messages": [{"role": "user", "content": "Analyze this code."}]
-            }'
+            -d "$(jq -n \
+              --arg model "$OPENROUTER_MODEL" \
+              --arg content "$PROMPT" \
+              '{model: $model, messages: [{role: "user", content: $content}]}'
+            )")
+      
+          REVIEW=$(echo "$RESPONSE" | jq -r '.choices[0].message.content')
+      
+          echo "REVIEW<<EOF" >> $GITHUB_ENV
+          echo "$REVIEW" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Post review to GitHub
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          curl -s -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/comments \
+            -d "$(jq -n --arg body "$REVIEW" '{body: $body}')"
