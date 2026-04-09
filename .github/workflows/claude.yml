@@ -32,23 +32,17 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Run Claude Code
-        id: claude
-        uses: anthropics/claude-code-action@v1
-        with:
-          anthropic_api_key: ${{ secrets.OPENROUTER_API_KEY }}
+      - name: Run AI Script
         env:
-          ANTHROPIC_BASE_URL: https://openrouter.ai/api/v1
-          ANTHROPIC_API_KEY: ""
-          ANTHROPIC_MODEL: "nvidia/nemotron-3-super-120b-a12b:free"
-          prompt: |
-            REPO: ${{ github.repository }}
-            ISSUE NUMBER: ${{ github.event.issue.number }}
-            
-            Review and analyze through the issue description to figure out the problem and what need to be changed.
-            Use the repository's CLAUDE.md for guidance on style and conventions. Be constructive and helpful in your feedback.
-
-          # This is an optional setting that allows Claude to read CI results on PRs
-          additional_permissions: |
-            actions: read
-          # prompt: 'Update the pull request description to include a summary of changes.'
+          # Reference your stored GitHub Secret
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_MODEL: "openrouter/free" 
+        run: |
+          # Using cURL to call the API
+          curl https://openrouter.ai/api/v1/chat/completions \
+            -H "Authorization: Bearer $OPENROUTER_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "model": "'"$OPENROUTER_MODEL"'",
+              "messages": [{"role": "user", "content": "Analyze this code."}]
+            }'
