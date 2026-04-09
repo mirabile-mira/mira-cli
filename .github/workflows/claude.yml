@@ -35,7 +35,11 @@ jobs:
       - name: Extract issue/PR data safely
         run: |
           TITLE="${{ github.event.issue.title }}"
-          BODY="${{ github.event.issue.body }}"
+          
+          BODY=$(cat <<'EOF'
+          ${{ github.event.issue.body }}
+          EOF
+          )
       
           echo "TITLE<<EOF" >> $GITHUB_ENV
           echo "$TITLE" >> $GITHUB_ENV
