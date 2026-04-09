@@ -34,8 +34,8 @@ jobs:
 
       - name: Extract issue/PR data safely
         run: |
-          TITLE="${{ github.event.issue.title || github.event.pull_request.title }}"
-          BODY="${{ github.event.issue.body || github.event.pull_request.body }}"
+          TITLE="${{ github.event.issue.title }}"
+          BODY="${{ github.event.issue.body }}"
       
           echo "TITLE<<EOF" >> $GITHUB_ENV
           echo "$TITLE" >> $GITHUB_ENV
@@ -50,7 +50,7 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           OPENROUTER_MODEL: "openrouter/free"
         run: |
-          NUMBER="${{ github.event.issue.number || github.event.pull_request.number }}"
+          NUMBER="${{ github.event.issue.number }}"
           URL="https://github.com/${{ github.repository }}/issues/$NUMBER"
 
           PROMPT="You are a senior software engineer and product reviewer.
