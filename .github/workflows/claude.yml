@@ -37,19 +37,50 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           OPENROUTER_MODEL: "openrouter/free"
         run: |
-          DIFF=$(git diff origin/main...HEAD)
-      
-          PROMPT="You are a helpful code reviewer.
-          Review the following code changes for GitHub issue/PR #${{ github.event.pull_request.number }}.
+          PROMPT="You are a senior software engineer and product reviewer.
           
-          Provide:
-          - Bugs or risks
-          - Code quality issues
-          - Suggestions for improvement
+          Your task is to critically review the following GitHub issue and provide detailed, actionable feedback.
           
-          Code changes:
-          $DIFF
-          "
+          Focus on:
+          
+          1. Clarity
+          - Is the problem clearly explained?
+          - Are there ambiguous or vague statements?
+          
+          2. Completeness
+          - Are requirements fully specified?
+          - Are acceptance criteria missing?
+          
+          3. Technical Feasibility
+          - Are there hidden challenges or risks?
+          - Are there edge cases not considered?
+          
+          4. Scope & Boundaries
+          - Is the scope well-defined?
+          - Is it too broad or too narrow?
+          
+          5. Missing Information
+          - What important details are not included?
+          - What questions should be asked before starting?
+          
+          6. Suggested Improvements
+          - Rewrite unclear parts if needed
+          - Suggest a better structure if applicable
+          
+          7. Priority & Complexity Assessment
+          - Estimate complexity (Low / Medium / High)
+          - Identify potential blockers
+          
+          ---
+          
+          Issue Details:
+          Title: $TITLE
+          Description:
+          $BODY
+          
+          ---
+          
+          Output your response in clean markdown with headings and bullet points. Be concise but insightful."
       
           RESPONSE=$(curl -s https://openrouter.ai/api/v1/chat/completions \
             -H "Authorization: Bearer $OPENROUTER_API_KEY" \
