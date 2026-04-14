@@ -50,7 +50,7 @@
 
 <div align="center">
   <a href="https://github.com/Stewie-pixel/mirabile">
-    <img src="assets/images/logo.png" alt="Logo" width="600" height="375">
+    <img src="assets/images/logo.png" alt="Logo" width="800" height="500">
   </a>
 </div>
 
