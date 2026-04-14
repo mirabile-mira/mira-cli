@@ -4,15 +4,6 @@ on:
   pull_request:
     types: [opened, synchronize]
 
-env:
-  GH_TOKEN: ${{ github.token }}
-  OPENROUTER_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-
-# Prevent multiple review runs on rapid PR updates
-concurrency:
-  group: claude-review-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
-
 jobs:
   claude-review:
     runs-on: ubuntu-latest
@@ -62,8 +53,8 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
+            github.rest.pulls.createComment({
+              pull_number: context.pull_request.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: `## Code Review Bypassed
@@ -118,8 +109,6 @@ jobs:
             - Skill quality (if applicable)
 
             Use the repository's CLAUDE.md for guidance on style and conventions. Be constructive and helpful in your feedback.
-
-            Use `gh pr comment` with your Bash tool to leave your review as a comment on the PR.
           
           ---
           
