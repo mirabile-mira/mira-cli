@@ -28,7 +28,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/Stewie-pixel/mirabile">
-    <img src="assets/images/mirabile-cli.png" alt="Logo" width="120" height="120">
+    <img src="assets/images/mirabile-cli.png" alt="Mirabile CLI" width="120" height="120">
   </a>
 
 <h3 align="center">Mirabile</h3>
@@ -50,7 +50,7 @@
 
 <div align="center">
   <a href="https://github.com/Stewie-pixel/mirabile">
-    <img src="assets/images/logo.png" alt="Logo" width="800" height="500">
+    <img src="assets/images/logo.png" alt="Mirabile Project Banner" width="800" height="500">
   </a>
 </div>
 
