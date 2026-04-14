@@ -32,7 +32,7 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Extract issue/PR data safely
+      - name: Extract issue data
         run: |
           TITLE="${{ github.event.issue.title }}"
           

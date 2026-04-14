@@ -5,13 +5,7 @@ on:
     types: [opened, synchronize]
 
 env:
-  GH_TOKEN: ${{ github.token }}
-  OPENROUTER_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-
-# Prevent multiple review runs on rapid PR updates
-concurrency:
-  group: claude-review-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}    
 
 jobs:
   claude-review:
@@ -62,8 +56,8 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
+            github.rest.pulls.createComment({
+              pull_number: context.pull_request.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: `## Code Review Bypassed
@@ -79,21 +73,36 @@ jobs:
         if: steps.bypass.outputs.bypass != 'true'
         uses: actions/checkout@v4
 
+      - name: Extract PR data
+        run: |
+          TITLE="${{ github.event.pull_request.title }}"
+          
+          BODY=$(cat <<'EOF'
+          ${{ github.event.pull_request.body }}
+          EOF
+          )
+      
+          echo "TITLE<<EOF" >> $GITHUB_ENV
+          echo "$TITLE" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+      
+          echo "BODY<<EOF" >> $GITHUB_ENV
+          echo "$BODY" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
       - name: Run Claude Code Review
         if: steps.bypass.outputs.bypass != 'true'
         id: claude-review
-        uses: anthropics/claude-code-action@v1
         continue-on-error: true
-        with:
-          anthropic_api_key: ${{ secrets.OPENROUTER_API_KEY }}
         env:
-          ANTHROPIC_BASE_URL: https://openrouter.ai/api/v1
-          MODEL_NAME: ${{ env.MY_MODEL }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_MODEL: "openrouter/free"
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          prompt: |
-            REPO: ${{ github.repository }}
-            PR NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          NUMBER="${{ github.event.pull_request.number }}"
+          URL="https://github.com/${{ github.repository }}/pull/$NUMBER"
 
+          PROMPT="
             Please review this pull request and provide feedback on:
             - Code quality and best practices
             - Potential bugs or issues
@@ -103,15 +112,44 @@ jobs:
             - Skill quality (if applicable)
 
             Use the repository's CLAUDE.md for guidance on style and conventions. Be constructive and helpful in your feedback.
+          
+          ---
+          
+          PR Details:
+          PR: #$NUMBER
+          Link: $URL
+          Title: $TITLE
+          Description:
+          $BODY
+          
+          ---
+          
+          Output your response in clean markdown with headings and bullet points. Be concise but insightful."
+      
+          RESPONSE=$(curl -s https://openrouter.ai/api/v1/chat/completions \
+            -H "Authorization: Bearer $OPENROUTER_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n \
+              --arg model "$OPENROUTER_MODEL" \
+              --arg content "$PROMPT" \
+              '{model: $model, messages: [{role: "user", content: $content}]}'
+            )")
+      
+          REVIEW=$(echo "$RESPONSE" | jq -r '.choices[0].message.content')
+      
+          echo "REVIEW<<EOF" >> $GITHUB_ENV
+          echo "$REVIEW" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
-            Use `gh pr comment` with your Bash tool to leave your review as a comment on the PR.
-
-          # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
-          # or https://docs.claude.com/en/docs/claude-code/cli-reference
-          claude_args: >-
-            --allowed-tools
-            "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),
-            Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"
+      - name: Post review to GitHub
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          curl -s -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Content-Type: application/json" \
+            https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments \
+            -d "$(jq -n --arg body "$REVIEW" '{body: $body}')"
 
       - name: Post fallback review note (quota/timeout)
         if: steps.claude-review.outcome != 'success'
