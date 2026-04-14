@@ -28,7 +28,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/Stewie-pixel/mirabile">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
+    <img src="assets/images/mirabile-cli.png" alt="Logo" width="120" height="120">
   </a>
 
 <h3 align="center">Mirabile</h3>
@@ -46,9 +46,13 @@
   </p>
 </div>
 
----
-
 ## 📖 About The Project
+
+<div align="center">
+  <a href="https://github.com/Stewie-pixel/mirabile">
+    <img src="assets/images/logo.png" alt="Logo" width="600" height="375">
+  </a>
+</div>
 
 **Mirabile** is an intelligent career roadmap platform that converts user-defined career goals into **structured learning paths** with **context-aware resources**.
 
