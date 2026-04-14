@@ -79,6 +79,23 @@ jobs:
         if: steps.bypass.outputs.bypass != 'true'
         uses: actions/checkout@v4
 
+      - name: Extract PR data
+        run: |
+          TITLE="${{ github.event.pull_request.title }}"
+          
+          BODY=$(cat <<'EOF'
+          ${{ github.event.pull_request.body }}
+          EOF
+          )
+      
+          echo "TITLE<<EOF" >> $GITHUB_ENV
+          echo "$TITLE" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+      
+          echo "BODY<<EOF" >> $GITHUB_ENV
+          echo "$BODY" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
       - name: Run Claude Code Review
         if: steps.bypass.outputs.bypass != 'true'
         id: claude-review
