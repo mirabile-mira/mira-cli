@@ -1,7 +1,7 @@
-const { Anthropic } = require('@anthropic-ai/sdk');
+const { OpenRouter } = require('@openrouter/sdk');
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
+const openrouter = new OpenRouter({
+  apiKey: process.env.OPENROUTER_API_KEY,
 });
 
 async function generateRoadmap(parsedInput) {
@@ -24,19 +24,23 @@ Rules:
 
   const userPrompt = `Create a career roadmap for: ${contextParts.join('. ')}.`;
 
-  const response = await anthropic.messages.create({
-    model: process.env.CLAUDE_MODEL || 'claude-sonnet-4-20250514',
-    max_tokens: 1500,
+  const stream = await openrouter.chat.send({
+    model: 'google/gemma-4-31b-it:free',
     system: systemPrompt,
-    messages: [{ role: 'user', content: userPrompt }],
-    stop_sequences: ['</phases>', '</json>'],
+    messages: [
+      { role: 'user', content: userPrompt },
+    ],
+    stream: true,
+    max_tokens: 5000,
   });
 
-  let content = response.content[0].text;
+  let content = "";
 
-  // Handle stop_reason === 'max_tokens' (truncated response)
-  if (response.stop_reason === 'max_tokens') {
-    throw new Error('Roadmap response was truncated — increase max_tokens');
+  for await (const chunk of stream) {
+    const delta = chunk.choices[0]?.delta?.content;
+    if (delta) {
+      content += delta;
+    }
   }
 
   // Strip any markdown code fences the model might include
