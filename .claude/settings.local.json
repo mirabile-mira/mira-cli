@@ -15,7 +15,15 @@
       "Read(//tmp/**)",
       "Bash(pkill -f \"node.*server.*index\")",
       "Bash(fuser -k 5000/tcp)",
-      "Bash(ls -la .env*)"
+      "Bash(ls -la .env*)",
+      "Bash(npx gitnexus *)",
+      "Bash(xargs -I {} sh -c 'echo \"===== {} =====\"; cat {}')",
+      "WebSearch",
+      "Bash(npm start *)",
+      "Bash(netstat -ano)",
+      "Bash(findstr :3000)",
+      "Bash(taskkill *)",
+      "Bash(ls -la .eslintrc* eslint.config.*)"
     ]
   }
 }
