@@ -38,44 +38,19 @@ Rules:
     max_tokens: 5000,
   });
 
-  try {
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'mirabile.app',
-        'X-Title': 'Mirabile',
-      },
-      body: JSON.stringify({
-        model: 'openai/gpt-3.5-turbo',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        stream: false,
-        max_tokens: 5000,
-      })
-    });
+  const response = await openrouter.messages.create({
+    model: 'openrouter/free',
+    max_tokens: 5000,
+    system: systemPrompt,
+    messages: [{ role: 'user', content: userPrompt }],
+    stop_sequences: ['</phases>', '</json>'],
+  });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`API request failed: ${response.status} - ${errorText}`);
-    }
+  const content = await response.getText();
 
-    const data = await response.json();
-    console.log('API response:', data);
-
-    if (data.choices && data.choices[0] && data.choices[0].message) {
-      let content = data.choices[0].message.content;
-      console.log('Content received:', content.substring(0, 100) + '...');
-      return JSON.parse(content.replace(/^```(?:json)?\s*|\s*```$/g, '').trim());
-    } else {
-      throw new Error('Invalid response structure from OpenRouter');
-    }
-  } catch (error) {
-    console.error('Direct API call error:', error);
-    throw error;
+  // Handle stop_reason === 'max_tokens' (truncated response)
+  if (response.stop_reason === 'max_tokens') {
+    throw new Error('Roadmap response was truncated — increase max_tokens');
   }
 
   // Strip any markdown code fences the model might include
