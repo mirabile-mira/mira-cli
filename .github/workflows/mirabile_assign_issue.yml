@@ -39,7 +39,7 @@ jobs:
           permission-issues: 'write'
 
       - name: 'Assign issue to user'
-        if: contains(github.event.comment.body, 'assign')
+        if: "contains(github.event.comment.body, '/assign')"
         uses: 'actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd'
         with:
           github-token: '${{ steps.generate_token.outputs.token }}'
@@ -49,22 +49,6 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
             const MAX_ISSUES_ASSIGNED = 3;
-            
-            const commentBody = context.payload.comment.body.trim();
-      
-            if (
-              commentBody.includes('assign') &&
-              commentBody !== '/assign' &&
-              !commentBody.startsWith('/unassign')
-            ) {
-              await github.rest.issues.createComment({
-                owner,
-                repo,
-                issue_number: issueNumber,
-                body: ` @${commenter} please use \`/assign\` to assign yourself to this issue.`
-              });
-              return;
-            }
             
             const issue = await github.rest.issues.get({
               owner: context.repo.owner,
