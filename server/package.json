@@ -18,13 +18,13 @@
   },
   "homepage": "https://github.com/Stewie-pixel/mirabile#readme",
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.82.0",
+    "@anthropic-ai/sdk": "^0.91.1",
     "@openrouter/sdk": "^0.12.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.0",
     "express": "^5.2.1",
     "mongoose": "^9.3.3",
-    "uuid": "^13.0.0"
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
