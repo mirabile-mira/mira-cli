@@ -1,0 +1,16 @@
+{
+  "name": "@mira/cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@mira/auth": "^0.1.0",
+    "@mira/core": "^0.1.0",
+    "@mira/shared": "^0.1.0"
+  }
+}
