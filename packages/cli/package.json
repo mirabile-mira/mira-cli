@@ -4,13 +4,19 @@
   "private": true,
   "type": "module",
   "main": "./dist/index.js",
+  "bin": {
+    "mira": "./bin/mira"
+  },
   "scripts": {
     "build": "tsc",
-    "test": "jest"
+    "clean": "rm -rf dist *.tsbuildinfo",
+    "test": "jest",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@mira/auth": "^0.1.0",
-    "@mira/core": "^0.1.0",
-    "@mira/shared": "^0.1.0"
+    "@mira/auth": "*",
+    "@mira/core": "*",
+    "@mira/shared": "*",
+    "commander": "^12.1.0"
   }
 }

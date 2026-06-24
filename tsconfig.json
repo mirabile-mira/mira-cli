@@ -9,7 +9,11 @@
     "declaration": true,
     "declarationMap": true,
 
-    "skipLibCheck": true
+    "skipLibCheck": true,
+
+    "types": [
+      "node"
+    ]
   },
 
   "files": [],
