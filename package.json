@@ -1,0 +1,51 @@
+{
+  "name": "mira-cli",
+  "version": "0.1.0",
+  "private": true,
+  "description": "An AI agent that lives inside your terminal",
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --build",
+    "clean": "npm run clean --workspaces"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^22.20.0",
+    "@typescript-eslint/eslint-plugin": "^8.62.0",
+    "@typescript-eslint/parser": "^8.62.0",
+    "esbuild": "^0.28.1",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "jest": "^30.4.2",
+    "prettier": "^3.8.4",
+    "ts-jest": "^29.4.11",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.62.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mirabile-mira/mira-cli.git"
+  },
+  "keywords": [
+    "cli",
+    "ai",
+    "agent",
+    "terminal"
+  ],
+  "author": "Mira-cli",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/mirabile-mira/mira-cli/issues"
+  },
+  "homepage": "https://github.com/mirabile-mira/mira-cli#readme"
+}

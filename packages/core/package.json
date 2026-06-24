@@ -1,0 +1,16 @@
+{
+  "name": "@mira/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@mira/db": "^0.1.0",
+    "@mira/sandbox": "^0.1.0",
+    "@mira/shared": "^0.1.0"
+  }
+}
