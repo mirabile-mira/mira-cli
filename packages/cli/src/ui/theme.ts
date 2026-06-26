@@ -4,9 +4,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { type ThemeName, themeNames } from "@mira/shared";
 import chalk from "chalk";
 
-export type ThemeName = "default" | "ocean" | "forest" | "sunset" | "mono";
+export type { ThemeName };
 
 export interface Theme {
     name: ThemeName;
@@ -89,7 +90,7 @@ export function setTheme(name: ThemeName): void {
 }
 
 export function getAllThemes(): ThemeName[] {
-    return Object.keys(themes) as ThemeName[];
+    return [...themeNames];
 }
 
 export { themes };

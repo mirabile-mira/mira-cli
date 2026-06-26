@@ -4,8 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { loadEnvFromCwd } from "@mira/shared";
 import { Command } from "commander";
 import { createRequire } from "module";
+
+loadEnvFromCwd();
 
 const require = createRequire(import.meta.url);
  
