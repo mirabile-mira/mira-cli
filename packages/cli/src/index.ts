@@ -1,12 +1,14 @@
+/**
+ * @license
+ * Copyright 2026 Mirabile LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import { Command } from "commander";
 import { createRequire } from "module";
-import { fileURLToPath } from "url";
-import { dirname, resolve } from "path";
- 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+
 const require = createRequire(import.meta.url);
  
-// Read version from package.json at runtime
 const { version } = require("../package.json") as { version: string };
 
 const program = new Command();
